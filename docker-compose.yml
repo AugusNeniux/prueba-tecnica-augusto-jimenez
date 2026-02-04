@@ -1,0 +1,19 @@
+# Docker Compose para desarrollo local
+# Solo levanta la base de datos PostgreSQL
+
+services:
+  db:
+    image: postgres:14.3
+    container_name: packages-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: packages_user
+      POSTGRES_PASSWORD: Dev123456!
+      POSTGRES_DB: packages_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
