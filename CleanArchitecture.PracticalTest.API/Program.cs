@@ -2,8 +2,11 @@ using CleanArchitecture.PracticalTest.API.Configurations;
 using CleanArchitecture.PracticalTest.API.ErrorHandling;
 using CleanArchitecture.PracticalTest.API.Middlewares;
 using CleanArchitecture.PracticalTest.Application;
+using CleanArchitecture.PracticalTest.Application.Abstractions.Persistence;
+using CleanArchitecture.PracticalTest.Application.Contracts.ContextApplication;
 using CleanArchitecture.PracticalTest.Infrastructure;
 using CleanArchitecture.PracticalTest.Infrastructure.Data;
+using CleanArchitecture.PracticalTest.Infrastructure.Localization;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -68,6 +71,11 @@ try
 
     // Registra los servicios de la capa de aplicación, como casos de uso, validaciones y lógica de negocio
     builder.Services.AddApplicationServices();
+
+    builder.Services.AddScoped<IContextDb, ContextDbAdapter>();
+
+    builder.Services.AddScoped<ILocalizer, Localizer>();
+
     #endregion
 
     #region Application Pipeline

@@ -1,10 +1,15 @@
-using Microsoft.EntityFrameworkCore;
 using CleanArchitecture.PracticalTest.Domain.Common;
+using CleanArchitecture.PracticalTest.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.PracticalTest.Infrastructure.Data;
 
 public class ContextDb(DbContextOptions<ContextDb> options) : DbContext(options)
 {
+    public DbSet<Package> Packages => Set<Package>();
+    public DbSet<Route> Routes => Set<Route>();
+    public DbSet<PackageStatusHistory> PackageStatusHistories => Set<PackageStatusHistory>();
+
     // Sobreescribir el metodo SaveChangesAsync para que se actualicen las propiedades de auditoria
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

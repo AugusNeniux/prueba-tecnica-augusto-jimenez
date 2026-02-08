@@ -1,0 +1,117 @@
+@baseUrl = http://localhost:7098
+@api = {{baseUrl}}/api/v1
+
+###
+# Health check
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+# 1) Crear paquete (POST /packages)
+# Respuesta esperada: 200 con APIResponse<Guid>
+POST {{api}}/packages
+Content-Type: application/json
+Accept: application/json
+
+{
+  "weightKg": 2.5,
+  "lengthCm": 40,
+  "widthCm": 30,
+  "heightCm": 20
+}
+
+###
+# 1.1) Crear paquete inválido (peso menor a 0.1) -> 400 Validation Failed
+POST {{api}}/packages
+Content-Type: application/json
+Accept: application/json
+
+{
+  "weightKg": 0,
+  "lengthCm": 40,
+  "widthCm": 30,
+  "heightCm": 20
+}
+
+###
+# Guarda aquí el ID devuelto por el POST (data)
+@packageId = ec6d4c79-93ed-41f4-891b-4b5051fe1278
+
+###
+# 2) Obtener paquete por ID (GET /packages/{id})
+# Esperado: 200 con paquete + statusHistory
+GET {{api}}/packages/{{packageId}}
+Accept: application/json
+
+###
+# 2.1) Obtener paquete no existente -> 404 Not Found
+GET {{api}}/packages/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+###
+# 3) Cambiar estado a EnBodega (PATCH /packages/{id}/status)
+# Esperado: 200
+PATCH {{api}}/packages/{{packageId}}/status
+Content-Type: application/json
+Accept: application/json
+
+{
+  "newStatus": "EnBodega",
+  "reason": "Ingreso a bodega"
+}
+
+###
+# 3.1) Transición inválida (Desde Registrado intentar pasar a EnTransito de forma directa) -> 422
+# Nota: crea otro paquete nuevo y usa su id aquí para probarlo.
+PATCH {{api}}/packages/{{packageId}}/status
+Content-Type: application/json
+Accept: application/json
+
+{
+  "newStatus": "EnTransito",
+  "reason": "Salto de estado (debe fallar)"
+}
+
+###
+# 3.2) Devolver paquete (PATCH a Devuelto) -> 200
+PATCH {{api}}/packages/{{packageId}}/status
+Content-Type: application/json
+Accept: application/json
+
+{
+  "newStatus": "Devuelto",
+  "reason": "Cliente canceló"
+}
+
+###
+# 4) Asignar ruta (POST /packages/{id}/assign-route)
+# Regla: Solo en EnBodega (Si ya se devolvio, cree otro paquete para esta prueba)
+POST {{api}}/packages/{{packageId}}/assign-route
+Content-Type: application/json
+Accept: application/json
+
+{
+  "origin": "CDMX",
+  "destination": "Guadalajara",
+  "distanceKm": 550,
+  "estimatedTimeHours": 7.5
+}
+
+###
+# 4.1) Asignar ruta cuando NO está en EnBodega -> 422
+# (Ejemplo: si está Registrado o Devuelto o Entregado, debe fallar)
+POST {{api}}/packages/{{packageId}}/assign-route
+Content-Type: application/json
+Accept: application/json
+
+{
+  "origin": "Monterrey",
+  "destination": "Querétaro",
+  "distanceKm": 700,
+  "estimatedTimeHours": 9
+}
+
+###
+# 4.2) Verificar paquete después de asignar ruta
+GET {{api}}/packages/{{packageId}}
+Accept: application/json
